@@ -44,3 +44,22 @@ window.onload = () => {
     let last = localStorage.getItem("ultimoAccesso");
     if (last) document.getElementById("ultimoAccesso").innerText = last;
 };
+
+// ===== NEVE ANIMATA =====
+
+function creaNeve() {
+    const snow = document.createElement("div");
+    snow.className = "snowflake";
+    snow.textContent = "❄";
+
+    snow.style.left = Math.random() * 100 + "vw";
+    snow.style.fontSize = (Math.random() * 10 + 10) + "px";
+    snow.style.animationDuration = (Math.random() * 5 + 5) + "s";
+
+    document.body.appendChild(snow);
+
+    setTimeout(() => snow.remove(), 12000);
+}
+
+setInterval(creaNeve, 150);
+
