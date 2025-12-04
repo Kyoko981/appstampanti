@@ -1,12 +1,10 @@
 /* ===== LOGIN ===== */
 async function login() {
     let matr = document.getElementById("matricola").value.trim();
-
     if (!matr) return;
 
     let res = await fetch("autorizzati.txt?" + Date.now());
-    let text = await res.text();
-    let list = text.split(/\r?\n/).map(x => x.trim());
+    let list = (await res.text()).split(/\r?\n/).map(x => x.trim());
 
     if (!list.includes(matr)) {
         document.getElementById("loginError").innerText = "Matricola non autorizzata";
@@ -23,50 +21,46 @@ async function login() {
 /* ===== RICERCA DNS AUTOMATICA ===== */
 document.addEventListener("DOMContentLoaded", () => {
     const ipField = document.getElementById("ip");
-    if (ipField) {
-        ipField.addEventListener("input", cercaDNS);
-    }
+    if (ipField) ipField.addEventListener("input", cercaDNS);
 });
 
 async function cercaDNS() {
     let ip = document.getElementById("ip").value.trim();
     let res = document.getElementById("risultato");
-    let copyBtn = document.getElementById("copyBtn");
+    let btn = document.getElementById("copyBtn");
 
     if (!ip) {
         res.innerText = "";
-        copyBtn.style.display = "none";
+        btn.style.display = "none";
         return;
     }
 
     let file = await fetch("stampanti.csv?" + Date.now());
-    let text = await file.text();
-    let lines = text.split(/\r?\n/);
+    let lines = (await file.text()).split(/\r?\n/);
 
     for (let l of lines) {
         let [c_ip, c_dns] = l.split(";");
         if (c_ip && c_ip.trim() === ip) {
             res.innerText = "DNS: " + c_dns;
-            copyBtn.dataset.dns = c_dns;
-            copyBtn.style.display = "block";
+            btn.dataset.dns = c_dns;
+            btn.style.display = "block";
             return;
         }
     }
 
     res.innerText = "❌ DNS non trovato";
-    copyBtn.style.display = "none";
+    btn.style.display = "none";
 }
 
-/* ===== BOTTONE COPIA DNS ===== */
+/* ===== COPIA DNS ===== */
 function copiaDNS() {
     let btn = document.getElementById("copyBtn");
     navigator.clipboard.writeText(btn.dataset.dns);
-
     btn.innerText = "✔ Copiato!";
     setTimeout(() => btn.innerText = "📋 Copia DNS", 1500);
 }
 
-/* ===== NEVE SUPER VELOCE + SCIOGLIMENTO ===== */
+/* ===== NEVE SUPER VELOCE ===== */
 function creaNeve() {
     const snow = document.createElement("div");
     snow.className = "snowflake";
@@ -74,14 +68,90 @@ function creaNeve() {
 
     snow.style.left = Math.random() * 100 + "vw";
     snow.style.fontSize = (Math.random() * 10 + 16) + "px";
-    snow.style.animationDuration = (Math.random() * 4 + 4) + "s"; 
+    snow.style.animationDuration = (Math.random() * 2 + 2) + "s";
     snow.style.opacity = Math.random() * 0.9 + 0.1;
 
     document.body.appendChild(snow);
-    setTimeout(() => snow.remove(), 7000);
+    setTimeout(() => snow.remove(), 4000);
+}
+setInterval(creaNeve, 100);
+
+/* ===== MODALE ===== */
+function apriModale() {
+    document.getElementById("modal").style.display = "flex";
+}
+function chiudiModale() {
+    document.getElementById("modal").style.display = "none";
 }
 
-setInterval(creaNeve, 160);
+/* ===== AGGIUNGI IP/DNS ===== */
+async function inviaNuovo() {
+    let ip = document.getElementById("new_ip").value.trim();
+    let dns = document.getElementById("new_dns").value.trim();
+    let err = document.getElementById("modalError");
+
+    if (!ip || !dns) {
+        err.innerText = "Compila entrambi i campi.";
+        return;
+    }
+
+    /* Controlla stampanti.csv */
+    let mainCSV = await fetch("stampanti.csv?" + Date.now());
+    let mainLines = (await mainCSV.text()).split(/\r?\n/);
+    for (let r of mainLines) {
+        let [c_ip] = r.split(";");
+        if (c_ip === ip) {
+            err.innerText = "❌ IP già registrato in stampanti.csv";
+            return;
+        }
+    }
+
+    /* Controlla inattesa.csv */
+    let attCSV = await fetch("inattesa.csv?" + Date.now());
+    let attLines = (await attCSV.text()).split(/\r?\n/);
+    for (let r of attLines) {
+        let [c_ip] = r.split(";");
+        if (c_ip === ip) {
+            err.innerText = "❌ IP già in attesa di registrazione";
+            return;
+        }
+    }
+
+    /* Scrivi su inattesa.csv via GitHub API */
+    await scriviInAttesa(ip, dns);
+
+    err.style.color = "lightgreen";
+    err.innerText = "✔ Aggiunto correttamente!";
+}
+
+/* ===== GitHub API ===== */
+const TOKEN = "INSERISCI_IL_TUO_TOKEN_GITHUB";
+const REPO = "kyoko981/appstampanti";
+
+async function scriviInAttesa(ip, dns) {
+    let url = `https://api.github.com/repos/${REPO}/contents/inattesa.csv`;
+
+    let res = await fetch(url);
+    let data = await res.json();
+
+    let content = atob(data.content);
+    content += `\n${ip};${dns}`;
+
+    let update = {
+        message: "Nuovo IP in attesa",
+        content: btoa(content),
+        sha: data.sha
+    };
+
+    await fetch(url, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${TOKEN}`
+        },
+        body: JSON.stringify(update)
+    });
+}
 
 /* ===== ULTIMO ACCESSO ===== */
 window.onload = () => {
