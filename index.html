@@ -15,11 +15,17 @@
     <div class="luce"></div><div class="luce"></div>
 </div>
 
+<!-- Stelle dietro al box -->
+<div class="sky">
+    <div class="star"></div><div class="star"></div><div class="star"></div>
+    <div class="star"></div><div class="star"></div><div class="star"></div>
+</div>
+
 <!-- Neve -->
 <div id="snow-container"></div>
 
 <!-- Box principale -->
-<div class="container">
+<div class="container glow-box">
     <h1>🎄 Stampanti Padova 🎄</h1>
 
     <div id="loginBox">
@@ -36,7 +42,11 @@
 
         <h2>🔍 Ricerca DNS da IP</h2>
         <input type="text" id="ip" placeholder="Inserisci IP stampante">
-        <p id="risultato"></p>
+        
+        <div id="dnsContainer">
+            <p id="risultato"></p>
+            <button id="copyBtn" onclick="copiaDNS()" style="display:none;">📋 Copia DNS</button>
+        </div>
     </div>
 </div>
 
