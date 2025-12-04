@@ -2,11 +2,11 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>App Stampanti</title>
+<title>App Stampanti 🎄</title>
 
+<link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="script.js" defer></script>
-<link rel="stylesheet" href="style.css">
 
 </head>
 <body>
@@ -15,9 +15,9 @@
 
 <!-- LOGIN -->
 <div id="loginBox" class="box">
-    <h2>Login</h2>
+    <h2>🎄 Login Natalizio 🎄</h2>
     <input type="text" id="matricola" placeholder="Inserisci matricola">
-    <button onclick="login()">Entra</button>
+    <button class="green" onclick="login()">Entra</button>
     <p id="loginError" class="error"></p>
 </div>
 
@@ -25,21 +25,22 @@
 <div id="app" class="box" style="display:none;">
     <p id="ultimoAccesso" class="accesso"></p>
 
-    <h2>Cerca DNS</h2>
+    <h2>🔍 Cerca DNS</h2>
     <input type="text" id="ipInput" placeholder="Inserisci IP">
     <p id="risultato"></p>
-    <button id="btnCopia" style="display:none;" onclick="copiaDNS(this)">Copia DNS</button>
+    <button id="btnCopia" class="gold" style="display:none;" onclick="copiaDNS(this)">Copia DNS</button>
 
     <hr>
 
-    <h2>Aggiungi stampante</h2>
+    <h2>➕ Aggiungi stampante</h2>
     <input type="text" id="add_ip" placeholder="IP">
     <input type="text" id="add_dns" placeholder="DNS">
-    <button onclick="aggiungiStampante()">Aggiungi</button>
+    <button class="green" onclick="aggiungiStampante()">Aggiungi</button>
     <p id="add_msg"></p>
 
-    <button id="btnAdmin" onclick="vaiAdmin()" style="display:none;margin-top:20px;">Pannello Admin</button>
+    <br>
 
+    <button id="btnAdmin" class="red" onclick="vaiAdmin()" style="display:none;">Pannello Admin</button>
 </div>
 
 </body>
