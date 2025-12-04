@@ -76,31 +76,21 @@ function creaNeve() {
     snow.className = "snowflake";
     snow.textContent = "❄";
 
-    // posizione orizzontale random più “realistica”
-    snow.style.left = (Math.random() * 100) + "vw";
+    // Larghezza schermo intera
+    snow.style.left = Math.random() * 100 + "vw";
 
-    // dimensione leggermente più variabile
     snow.style.fontSize = (Math.random() * 8 + 14) + "px";
-
-    // durata caduta: veloce ma non troppo
     snow.style.animationDuration = (Math.random() * 2 + 2.5) + "s";
-
-    // aggiunge una piccola oscillazione laterale
-    snow.style.animationTimingFunction = "ease-in-out";
-
-    // random opacità
     snow.style.opacity = Math.random() * 0.8 + 0.2;
-
-    // leggero ritardo per rompere l’allineamento visivo
-    snow.style.animationDelay = (Math.random() * 1) + "s";
 
     document.body.appendChild(snow);
 
     setTimeout(() => snow.remove(), 5000);
 }
 
-// meno fiocchi → niente colonne, ma stessa sensazione
-setInterval(creaNeve, 180);
+// ogni 150ms → neve ricca ma naturale
+setInterval(creaNeve, 150);
+
 
 
 /* ============================================================
