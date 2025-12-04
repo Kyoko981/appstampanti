@@ -2,51 +2,29 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>Pannello Admin</title>
+<title>Pannello Admin 🎅</title>
 
+<link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="script.js"></script>
-<link rel="stylesheet" href="style.css">
-
-<style>
-table {
-    width: 100%;
-    margin-top: 20px;
-    border-collapse: collapse;
-    background: rgba(0,0,30,0.5);
-    color: white;
-    border-radius: 8px;
-}
-th, td {
-    padding: 10px;
-    border-bottom: 1px solid #1a3a57;
-}
-button {
-    background: #c0392b;
-    border: none;
-    color: white;
-    padding: 6px 10px;
-    border-radius: 6px;
-}
-button:hover {
-    background: #e74c3c;
-}
-</style>
 
 </head>
 <body>
 
 <div id="snow"></div>
 
-<h1>Gestione Richieste</h1>
+<h1 style="text-align:center; margin-top:30px;">🎅 Gestione Richieste Stampanti 🎄</h1>
 
-<div id="contenuto"></div>
+<div id="contenuto" class="adminBox">
+    Caricamento…
+</div>
 
 <script>
 (async () => {
+
     const m = localStorage.getItem("matricola");
     if (!isAdmin(m)) {
-        document.body.innerHTML = "<h2>⛔ Accesso negato</h2>";
+        document.body.innerHTML = "<h2 style='text-align:center;margin-top:50px;'>⛔ Accesso negato</h2>";
         return;
     }
 
@@ -56,7 +34,7 @@ button:hover {
         .order("created_at", { ascending: false });
 
     if (error) {
-        document.getElementById("contenuto").innerHTML = "Errore: " + error.message;
+        document.getElementById("contenuto").innerText = "Errore: " + error.message;
         return;
     }
 
@@ -76,7 +54,7 @@ button:hover {
             <td>${r.ip}</td>
             <td>${r.dns}</td>
             <td>${new Date(r.created_at).toLocaleString()}</td>
-            <td><button onclick="eliminaRichiesta('${r.id}')">Elimina</button></td>
+            <td><button class="red" onclick="eliminaRichiesta('${r.id}')">Elimina</button></td>
         </tr>`;
     });
 
@@ -84,7 +62,6 @@ button:hover {
 
     document.getElementById("contenuto").innerHTML = html;
 })();
-
 </script>
 
 </body>
