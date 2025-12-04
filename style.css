@@ -85,3 +85,14 @@ button:hover{background:#ff435c}
 
 /* Alberello */
 .footer-tree{position:fixed;bottom:15px;right:15px;font-size:38px;opacity:.85}
+
+.snowflake {
+    animation: fall linear infinite, spin linear infinite, sway 3s ease-in-out infinite;
+}
+
+@keyframes sway {
+    0%   { transform: translateX(0px); }
+    50%  { transform: translateX(15px); }
+    100% { transform: translateX(0px); }
+}
+
