@@ -1,142 +1,155 @@
-// ===============================================================
-//  CONFIGURAZIONE SUPABASE
-// ===============================================================
+/* ===========================
+   SUPABASE CONFIG
+=========================== */
 const SUPABASE_URL = "https://vtmuhinvdxrcsktnskav.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0bXVoaW52ZHhyY3NrdG5za2F2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ4MjcyMDksImV4cCI6MjA4MDQwMzIwOX0.VVxvoAFdxxyaeun_OCxGvh96H-Wo6thq5g-uhWrg_uI";
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ===============================================================
-//  CARICA CSV STAMPANTI (IP → DNS)
-// ===============================================================
+/* ===========================
+   FUNZIONE ADMIN
+=========================== */
+function isAdmin(matricola) {
+    return ["r010687"].includes(matricola);
+}
+
+/* ===========================
+   LOGIN
+=========================== */
+async function login() {
+    let m = document.getElementById("matricola").value.trim();
+
+    if (!m) {
+        document.getElementById("loginError").innerText = "Inserisci una matricola.";
+        return;
+    }
+
+    // Salva la matricola
+    localStorage.setItem("matricola", m);
+
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("app").style.display = "block";
+
+    if (isAdmin(m)) {
+        document.getElementById("btnAdmin").style.display = "inline-block";
+    }
+
+    localStorage.setItem("ultimoAccesso", new Date().toLocaleString());
+    document.getElementById("ultimoAccesso").innerText = localStorage.getItem("ultimoAccesso");
+}
+
+/* ===========================
+   CARICA CSV STAMPANTI
+=========================== */
 let stampantiMap = {};
 
 async function caricaCSV() {
-    try {
-        const response = await fetch("https://raw.githubusercontent.com/kyoko981/appstampanti/main/stampanti.csv?" + Date.now());
-        const text = await response.text();
+    const res = await fetch("stampanti.csv?" + Date.now());
+    const text = await res.text();
 
-        stampantiMap = {};
-        const righe = text.split("\n");
-
-        righe.forEach(riga => {
-            const [ip, dns] = riga.split(";");
-            if (ip && dns) {
-                stampantiMap[ip.trim()] = dns.trim();
-            }
-        });
-
-        console.log("CSV caricato:", Object.keys(stampantiMap).length, "voci");
-    } catch (err) {
-        console.error("Errore caricando CSV:", err);
-    }
+    stampantiMap = {};
+    text.split("\n").forEach(r => {
+        let [ip, dns] = r.split(";");
+        if (ip && dns) stampantiMap[ip.trim()] = dns.trim();
+    });
 }
 
 caricaCSV();
 
-// ===============================================================
-// CERCA DNS AUTOMATICAMENTE SCRIVENDO L'IP
-// ===============================================================
-async function cercaDNS() {
-    const ip = document.getElementById("ipInput").value.trim();
-    const output = document.getElementById("risultato");
-    const copiaBtn = document.getElementById("btnCopia");
+/* ===========================
+   CERCA DNS AUTOMATICO
+=========================== */
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("ipInput").addEventListener("input", cercaDNS);
+});
 
-    if (!ip) {
-        output.innerHTML = "Inserisci un IP…";
-        copiaBtn.style.display = "none";
-        return;
-    }
+function cercaDNS() {
+    const ip = document.getElementById("ipInput").value.trim();
+    const out = document.getElementById("risultato");
+    const btn = document.getElementById("btnCopia");
 
     if (stampantiMap[ip]) {
-        output.innerHTML = `✔ DNS trovato: <b>${stampantiMap[ip]}</b>`;
-        copiaBtn.style.display = "inline-block";
-        copiaBtn.dataset.value = stampantiMap[ip];
-        return;
+        out.innerHTML = `✔ DNS: <b>${stampantiMap[ip]}</b>`;
+        btn.style.display = "inline-block";
+        btn.dataset.value = stampantiMap[ip];
+    } else {
+        out.innerHTML = "❌ DNS non trovato";
+        btn.style.display = "none";
     }
-
-    output.innerHTML = "❌ DNS non trovato";
-    copiaBtn.style.display = "none";
 }
 
-// ===============================================================
-//  COPIA DNS
-// ===============================================================
+/* ===========================
+   COPIA DNS
+=========================== */
 function copiaDNS(btn) {
     navigator.clipboard.writeText(btn.dataset.value);
     btn.innerHTML = "✔ Copiato!";
     setTimeout(() => btn.innerHTML = "Copia DNS", 1200);
 }
 
-// ===============================================================
-//  AGGIUNGI STAMPANTE IN SUPABASE
-// ===============================================================
+/* ===========================
+   AGGIUNGI STAMPANTE
+=========================== */
 async function aggiungiStampante() {
     const ip = document.getElementById("add_ip").value.trim();
     const dns = document.getElementById("add_dns").value.trim();
     const msg = document.getElementById("add_msg");
 
     if (!ip || !dns) {
+        msg.innerHTML = "⚠ Inserisci IP e DNS.";
         msg.style.color = "#ff4444";
-        msg.innerHTML = "⚠ Inserisci sia IP che DNS.";
         return;
     }
 
-    // Inserisci nel DB Supabase (duplicati bloccati da policy RLS)
-    const { data, error } = await sb
-        .from("stampanti_in_attesa")
-        .insert([{ ip, dns }]);
+    const { error } = await sb.from("stampanti_in_attesa").insert([{ ip, dns }]);
 
     if (error) {
-        if (error.message.includes("duplicate")) {
-            msg.style.color = "#ff4444";
-            msg.innerHTML = "❌ IP già inserito in attesa.";
-        } else {
-            msg.style.color = "#ff4444";
-            msg.innerHTML = "❌ Errore server: " + error.message;
-        }
+        msg.innerHTML = "❌ Errore: " + error.message;
+        msg.style.color = "#ff4444";
         return;
     }
 
+    msg.innerHTML = "✔ Aggiunto!";
     msg.style.color = "#00cc66";
-    msg.innerHTML = "✔ Aggiunto correttamente!";
-    
+
     document.getElementById("add_ip").value = "";
     document.getElementById("add_dns").value = "";
 }
 
-// ===============================================================
-//  NEVE REGOLATA PIÙ VELOCE E SU TUTTO LO SFONDO
-// ===============================================================
-function initSnow() {
-    const snowContainer = document.createElement('div');
-    snowContainer.id = "snow";
-    document.body.appendChild(snowContainer);
-
-    const numeroFiocchi = 60;
-
-    for (let i = 0; i < numeroFiocchi; i++) {
-        const fiocco = document.createElement('div');
-        fiocco.className = 'fiocco';
-        fiocco.style.left = Math.random() * 100 + "vw";
-        fiocco.style.animationDuration = (4 + Math.random() * 4) + "s"; // più veloce
-        fiocco.style.opacity = Math.random();
-        fiocco.style.fontSize = (10 + Math.random() * 14) + "px";
-
-        snowContainer.appendChild(fiocco);
-    }
-}
-
-document.addEventListener("DOMContentLoaded", initSnow);
-
-document.addEventListener("DOMContentLoaded", () => {
-    const m = localStorage.getItem("matricola");
-    if (isAdmin(m)) {
-        document.getElementById("btnAdmin").style.display = "inline-block";
-    }
-});
-
+/* ===========================
+   VAI A PAGINA ADMIN
+=========================== */
 function vaiAdmin() {
     window.location.href = "admin.html";
 }
 
+/* ===========================
+   ELIMINA RECORD DA ADMIN
+=========================== */
+async function eliminaRichiesta(id) {
+    if (!confirm("Eliminare questa richiesta?")) return;
+
+    await sb.from("stampanti_in_attesa").delete().eq("id", id);
+    alert("✔ Eliminato");
+    location.reload();
+}
+
+/* ===========================
+   NEVE
+=========================== */
+function initSnow() {
+    const container = document.getElementById("snow");
+
+    for (let i = 0; i < 60; i++) {
+        let f = document.createElement("div");
+        f.className = "fiocco";
+        f.textContent = "❄";
+        f.style.left = Math.random() * 100 + "vw";
+        f.style.animationDuration = (4 + Math.random() * 4) + "s";
+        f.style.fontSize = (10 + Math.random() * 14) + "px";
+        f.style.opacity = Math.random();
+        container.appendChild(f);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", initSnow);
