@@ -1,36 +1,52 @@
 name: Aggiungi stampante in attesa
 
 on:
-  repository_dispatch:
-    types: [aggiungi_stampante]
+  push:
+    branches:
+      - "requests/**"
+
+permissions:
+  contents: write
 
 jobs:
-  add_entry:
+  process:
     runs-on: ubuntu-latest
-    environment: backend
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Recupero file inattesa.csv
-      run: |
-        if [ ! -f inattesa.csv ]; then
-          echo "" > inattesa.csv
-        fi
+      - name: Trova file JSON richieste
+        run: |
+          FILE=$(git diff --name-only HEAD^ HEAD | grep '^requests/' || true)
+          if [ -z "$FILE" ]; then
+            echo "Nessun file di richiesta trovato." 
+            exit 0
+          fi
+          echo "file_json=$FILE" >> $GITHUB_ENV
 
-    - name: Aggiungi riga
-      run: |
-        echo "${{ github.event.client_payload.ip }};${{ github.event.client_payload.dns }}" >> inattesa.csv
+      - name: Leggi JSON
+        run: |
+          echo "Leggo $file_json"
+          IP=$(jq -r '.ip' "$file_json")
+          DNS=$(jq -r '.dns' "$file_json")
+          echo "IP=$IP"
+          echo "DNS=$DNS"
+          echo "ip=$IP" >> $GITHUB_ENV
+          echo "dns=$DNS" >> $GITHUB_ENV
 
-    - name: Commit & Push
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      run: |
-        git config user.name "GitHub Action"
-        git config user.email "actions@github.com"
-        git add inattesa.csv
-        git commit -m "Aggiunto ${{
-          github.event.client_payload.ip
-        }} in attesa"
-        git push https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git HEAD:main
+      - name: Aggiungi riga a inattesa.csv
+        run: |
+          echo "${ip};${dns}" >> inattesa.csv
+
+      - name: Elimina file di richiesta
+        run: |
+          git rm -f "$file_json"
+
+      - name: Commit aggiornamenti
+        run: |
+          git config --global user.name "auto-action"
+          git config --global user.email "auto@github"
+          git add inattesa.csv
+          git commit -m "Aggiunta richiesta: ${ip} ${dns}" || true
+          git push
