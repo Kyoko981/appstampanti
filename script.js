@@ -1,130 +1,90 @@
-/* ===== SFONDO ANIMATO "ONDE BLU" ===== */
+/* ===== LOGIN ===== */
+async function login() {
+    let matr = document.getElementById("matricola").value.trim();
 
-body {
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-    font-family: Arial, sans-serif;
-    color: white;
-    text-align: center;
-    overflow-x: hidden;
-    overflow-y: hidden;
+    if (!matr) return;
 
-    background: linear-gradient(120deg, #001f3f, #003e73, #001f3f);
-    background-size: 300% 300%;
-    animation: ondaBlu 12s ease infinite;
+    let res = await fetch("autorizzati.txt?" + Date.now());
+    let text = await res.text();
+    let list = text.split(/\r?\n/).map(x => x.trim());
+
+    if (!list.includes(matr)) {
+        document.getElementById("loginError").innerText = "Matricola non autorizzata";
+        return;
+    }
+
+    localStorage.setItem("ultimoAccesso", new Date().toLocaleString("it-IT"));
+    document.getElementById("ultimoAccesso").innerText = localStorage.getItem("ultimoAccesso");
+
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("app").style.display = "block";
 }
 
-@keyframes ondaBlu {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+/* ===== RICERCA DNS AUTOMATICA ===== */
+document.addEventListener("DOMContentLoaded", () => {
+    const ipField = document.getElementById("ip");
+    if (ipField) {
+        ipField.addEventListener("input", cercaDNS);
+    }
+});
+
+async function cercaDNS() {
+    let ip = document.getElementById("ip").value.trim();
+    let res = document.getElementById("risultato");
+    let copyBtn = document.getElementById("copyBtn");
+
+    if (!ip) {
+        res.innerText = "";
+        copyBtn.style.display = "none";
+        return;
+    }
+
+    let file = await fetch("stampanti.csv?" + Date.now());
+    let text = await file.text();
+    let lines = text.split(/\r?\n/);
+
+    for (let l of lines) {
+        let [c_ip, c_dns] = l.split(";");
+        if (c_ip && c_ip.trim() === ip) {
+            res.innerText = "DNS: " + c_dns;
+            copyBtn.dataset.dns = c_dns;
+            copyBtn.style.display = "block";
+            return;
+        }
+    }
+
+    res.innerText = "❌ DNS non trovato";
+    copyBtn.style.display = "none";
 }
 
-/* ===== NEVE ===== */
+/* ===== BOTTONE COPIA DNS ===== */
+function copiaDNS() {
+    let btn = document.getElementById("copyBtn");
+    navigator.clipboard.writeText(btn.dataset.dns);
 
-.snowflake {
-    position: fixed;
-    top: -10px;
-    color: white;
-    font-size: 1em;
-    user-select: none;
-    animation: fall linear infinite, spin linear infinite;
+    btn.innerText = "✔ Copiato!";
+    setTimeout(() => btn.innerText = "📋 Copia DNS", 1500);
 }
 
-@keyframes fall {
-    to { transform: translateY(110vh) rotate(20deg); opacity: 0.2; }
+/* ===== NEVE SUPER VELOCE + SCIOGLIMENTO ===== */
+function creaNeve() {
+    const snow = document.createElement("div");
+    snow.className = "snowflake";
+    snow.textContent = "❄";
+
+    snow.style.left = Math.random() * 100 + "vw";
+    snow.style.fontSize = (Math.random() * 10 + 16) + "px";
+    snow.style.animationDuration = (Math.random() * 4 + 4) + "s"; 
+    snow.style.opacity = Math.random() * 0.9 + 0.1;
+
+    document.body.appendChild(snow);
+    setTimeout(() => snow.remove(), 7000);
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
+setInterval(creaNeve, 160);
 
-/* ===== LUCINE COLORATE ANIMATE ===== */
-
-.luci {
-    width: 100%;
-    padding: 18px 0;
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-
-    background: none;
-    border-bottom: none;
-}
-
-.luce {
-    width: 18px;
-    height: 32px;
-    border-radius: 50%;
-    animation: colorBlink 1.5s infinite, glow 1.5s infinite;
-}
-
-@keyframes colorBlink {
-    0%   { background: red; }
-    25%  { background: yellow; }
-    50%  { background: lime; }
-    75%  { background: cyan; }
-    100% { background: red; }
-}
-
-@keyframes glow {
-    0%   { box-shadow: 0 0 8px white; }
-    50%  { box-shadow: 0 0 15px white; }
-    100% { box-shadow: 0 0 8px white; }
-}
-
-/* ===== BOX ===== */
-
-.container {
-    margin: 50px auto;
-    max-width: 420px;
-    padding: 30px;
-    background: rgba(0,0,0,0.55);
-    border-radius: 20px;
-    box-shadow: 0 0 25px #fff3;
-    backdrop-filter: blur(6px);
-}
-
-input {
-    width: 90%;
-    padding: 10px;
-    margin: 10px;
-    border: none;
-    border-radius: 6px;
-}
-
-button {
-    padding: 10px 22px;
-    background: #d7263d;
-    border: none;
-    border-radius: 6px;
-    color: white;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-button:hover {
-    background: #ff435c;
-}
-
-.last {
-    font-size: 12px;
-    opacity: 0.7;
-    margin-bottom: 10px;
-}
-
-.error {
-    color: #ffbbbb;
-}
-
-/* ===== ALBERELLO ===== */
-
-.footer-tree {
-    position: fixed;
-    bottom: 15px;
-    right: 15px;
-    font-size: 38px;
-    opacity: 0.85;
-}
+/* ===== ULTIMO ACCESSO ===== */
+window.onload = () => {
+    let last = localStorage.getItem("ultimoAccesso");
+    if (last) document.getElementById("ultimoAccesso").innerText = last;
+};
