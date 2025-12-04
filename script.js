@@ -7,24 +7,23 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* ===========================
-   FUNZIONE ADMIN
+   ADMIN CHECK
 =========================== */
 function isAdmin(matricola) {
-    return ["r010687"].includes(matricola);
+    return ["r010687"].includes(matricola.toLowerCase());
 }
 
 /* ===========================
    LOGIN
 =========================== */
-async function login() {
-    let m = document.getElementById("matricola").value.trim();
+function login() {
+    let m = document.getElementById("matricola").value.trim().toLowerCase();
 
     if (!m) {
         document.getElementById("loginError").innerText = "Inserisci una matricola.";
         return;
     }
 
-    // Salva la matricola
     localStorage.setItem("matricola", m);
 
     document.getElementById("loginBox").style.display = "none";
@@ -34,8 +33,9 @@ async function login() {
         document.getElementById("btnAdmin").style.display = "inline-block";
     }
 
-    localStorage.setItem("ultimoAccesso", new Date().toLocaleString());
-    document.getElementById("ultimoAccesso").innerText = localStorage.getItem("ultimoAccesso");
+    let ultimo = new Date().toLocaleString();
+    localStorage.setItem("ultimoAccesso", ultimo);
+    document.getElementById("ultimoAccesso").innerText = "Ultimo accesso: " + ultimo;
 }
 
 /* ===========================
@@ -44,29 +44,42 @@ async function login() {
 let stampantiMap = {};
 
 async function caricaCSV() {
-    const res = await fetch("stampanti.csv?" + Date.now());
-    const text = await res.text();
+    try {
+        const res = await fetch("stampanti.csv?" + Date.now());
+        const text = await res.text();
 
-    stampantiMap = {};
-    text.split("\n").forEach(r => {
-        let [ip, dns] = r.split(";");
-        if (ip && dns) stampantiMap[ip.trim()] = dns.trim();
-    });
+        stampantiMap = {};
+        text.split("\n").forEach(r => {
+            let [ip, dns] = r.split(";");
+            if (ip && dns) stampantiMap[ip.trim()] = dns.trim();
+        });
+    } catch (e) {
+        console.error("Errore CSV:", e);
+    }
 }
 
 caricaCSV();
 
 /* ===========================
-   CERCA DNS AUTOMATICO
+   AUTO SEARCH DNS
 =========================== */
 document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("ipInput").addEventListener("input", cercaDNS);
+    initSnow();
+
+    const ipField = document.getElementById("ipInput");
+    if (ipField) ipField.addEventListener("input", cercaDNS);
 });
 
 function cercaDNS() {
     const ip = document.getElementById("ipInput").value.trim();
     const out = document.getElementById("risultato");
     const btn = document.getElementById("btnCopia");
+
+    if (!ip) {
+        out.innerHTML = "";
+        btn.style.display = "none";
+        return;
+    }
 
     if (stampantiMap[ip]) {
         out.innerHTML = `✔ DNS: <b>${stampantiMap[ip]}</b>`;
@@ -88,7 +101,7 @@ function copiaDNS(btn) {
 }
 
 /* ===========================
-   AGGIUNGI STAMPANTE
+   AGGIUNGI STAMPANTE (SUPABASE)
 =========================== */
 async function aggiungiStampante() {
     const ip = document.getElementById("add_ip").value.trim();
@@ -97,40 +110,41 @@ async function aggiungiStampante() {
 
     if (!ip || !dns) {
         msg.innerHTML = "⚠ Inserisci IP e DNS.";
-        msg.style.color = "#ff4444";
+        msg.style.color = "#ffaaaa";
         return;
     }
 
     const { error } = await sb.from("stampanti_in_attesa").insert([{ ip, dns }]);
 
     if (error) {
-        msg.innerHTML = "❌ Errore: " + error.message;
-        msg.style.color = "#ff4444";
+        msg.innerHTML = "❌ " + error.message;
+        msg.style.color = "#ffaaaa";
         return;
     }
 
-    msg.innerHTML = "✔ Aggiunto!";
-    msg.style.color = "#00cc66";
+    msg.innerHTML = "✔ Aggiunto con successo!";
+    msg.style.color = "#00ff99";
 
     document.getElementById("add_ip").value = "";
     document.getElementById("add_dns").value = "";
 }
 
 /* ===========================
-   VAI A PAGINA ADMIN
+   VAI ADMIN
 =========================== */
 function vaiAdmin() {
     window.location.href = "admin.html";
 }
 
 /* ===========================
-   ELIMINA RECORD DA ADMIN
+   ELIMINA RICHIESTA
 =========================== */
 async function eliminaRichiesta(id) {
     if (!confirm("Eliminare questa richiesta?")) return;
 
     await sb.from("stampanti_in_attesa").delete().eq("id", id);
-    alert("✔ Eliminato");
+
+    alert("✔ Eliminato!");
     location.reload();
 }
 
@@ -138,18 +152,16 @@ async function eliminaRichiesta(id) {
    NEVE
 =========================== */
 function initSnow() {
-    const container = document.getElementById("snow");
+    const c = document.getElementById("snow");
 
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < 70; i++) {
         let f = document.createElement("div");
         f.className = "fiocco";
         f.textContent = "❄";
         f.style.left = Math.random() * 100 + "vw";
         f.style.animationDuration = (4 + Math.random() * 4) + "s";
-        f.style.fontSize = (10 + Math.random() * 14) + "px";
+        f.style.fontSize = (10 + Math.random() * 24) + "px";
         f.style.opacity = Math.random();
-        container.appendChild(f);
+        c.appendChild(f);
     }
 }
-
-document.addEventListener("DOMContentLoaded", initSnow);
