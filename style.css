@@ -87,12 +87,25 @@ button:hover{background:#ff435c}
 .footer-tree{position:fixed;bottom:15px;right:15px;font-size:38px;opacity:.85}
 
 .snowflake {
-    animation: fall linear infinite, spin linear infinite, sway 3s ease-in-out infinite;
+    position: fixed;
+    top: -10px;
+    color: white;
+    user-select: none;
+    pointer-events: none;
+    z-index: 9999;
+
+    animation-name: fall, sway;
+    animation-timing-function: linear, ease-in-out;
+    animation-iteration-count: infinite;
+}
+
+@keyframes fall {
+    0% { transform: translateY(-10vh); }
+    100% { transform: translateY(110vh); }
 }
 
 @keyframes sway {
     0%   { transform: translateX(0px); }
-    50%  { transform: translateX(15px); }
+    50%  { transform: translateX(20px); }
     100% { transform: translateX(0px); }
 }
-
