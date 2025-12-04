@@ -29,8 +29,9 @@ async function cercaDNS() {
     let lines = text.split(/\r?\n/);
 
     for (let l of lines) {
-        let [c_ip, c_dns] = l.split(",");
-        if (c_ip === ip) {
+        let [c_ip, c_dns] = l.split(";");   // ← QUI IL CAMBIAMENTO IMPORTANTE
+
+        if (c_ip && c_ip.trim() === ip) {
             document.getElementById("risultato").innerText = "DNS: " + c_dns;
             return;
         }
