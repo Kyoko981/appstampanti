@@ -1,196 +1,130 @@
-/* ============================================================
-    LOGIN
-============================================================ */
-async function login() {
-    let matr = document.getElementById("matricola").value.trim();
-    if (!matr) return;
+// ===============================================================
+//  CONFIGURAZIONE SUPABASE
+// ===============================================================
+const SUPABASE_URL = "https://vtmuhinvdxrcsktnskav.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0bXVoaW52ZHhyY3NrdG5za2F2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ4MjcyMDksImV4cCI6MjA4MDQwMzIwOX0.VVxvoAFdxxyaeun_OCxGvh96H-Wo6thq5g-uhWrg_uI";
 
-    let res = await fetch("autorizzati.txt?" + Date.now());
-    let list = (await res.text()).split(/\r?\n/).map(x => x.trim());
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    if (!list.includes(matr)) {
-        document.getElementById("loginError").innerText = "Matricola non autorizzata";
-        return;
+// ===============================================================
+//  CARICA CSV STAMPANTI (IP → DNS)
+// ===============================================================
+let stampantiMap = {};
+
+async function caricaCSV() {
+    try {
+        const response = await fetch("https://raw.githubusercontent.com/kyoko981/appstampanti/main/stampanti.csv?" + Date.now());
+        const text = await response.text();
+
+        stampantiMap = {};
+        const righe = text.split("\n");
+
+        righe.forEach(riga => {
+            const [ip, dns] = riga.split(";");
+            if (ip && dns) {
+                stampantiMap[ip.trim()] = dns.trim();
+            }
+        });
+
+        console.log("CSV caricato:", Object.keys(stampantiMap).length, "voci");
+    } catch (err) {
+        console.error("Errore caricando CSV:", err);
     }
-
-    localStorage.setItem("ultimoAccesso", new Date().toLocaleString("it-IT"));
-    document.getElementById("ultimoAccesso").innerText =
-        localStorage.getItem("ultimoAccesso");
-
-    document.getElementById("loginBox").style.display = "none";
-    document.getElementById("app").style.display = "block";
 }
 
-/* ============================================================
-    RICERCA DNS AUTOMATICA
-============================================================ */
-document.addEventListener("DOMContentLoaded", () => {
-    const ipField = document.getElementById("ip");
-    if (ipField) ipField.addEventListener("input", cercaDNS);
-});
+caricaCSV();
 
+// ===============================================================
+// CERCA DNS AUTOMATICAMENTE SCRIVENDO L'IP
+// ===============================================================
 async function cercaDNS() {
-    let ip = document.getElementById("ip").value.trim();
-    let res = document.getElementById("risultato");
-    let btn = document.getElementById("copyBtn");
+    const ip = document.getElementById("ipInput").value.trim();
+    const output = document.getElementById("risultato");
+    const copiaBtn = document.getElementById("btnCopia");
 
     if (!ip) {
-        res.innerText = "";
-        btn.style.display = "none";
+        output.innerHTML = "Inserisci un IP…";
+        copiaBtn.style.display = "none";
         return;
     }
 
-    let file = await fetch("stampanti.csv?" + Date.now());
-    let lines = (await file.text()).split(/\r?\n/);
-
-    for (let l of lines) {
-        let [c_ip, c_dns] = l.split(";");
-        if (c_ip && c_ip.trim() === ip) {
-            res.innerText = "DNS: " + c_dns;
-            btn.dataset.dns = c_dns;
-            btn.style.display = "block";
-            return;
-        }
+    if (stampantiMap[ip]) {
+        output.innerHTML = `✔ DNS trovato: <b>${stampantiMap[ip]}</b>`;
+        copiaBtn.style.display = "inline-block";
+        copiaBtn.dataset.value = stampantiMap[ip];
+        return;
     }
 
-    res.innerText = "❌ DNS non trovato";
-    btn.style.display = "none";
+    output.innerHTML = "❌ DNS non trovato";
+    copiaBtn.style.display = "none";
 }
 
-/* ============================================================
-    COPIA DNS
-============================================================ */
-function copiaDNS() {
-    let btn = document.getElementById("copyBtn");
-    navigator.clipboard.writeText(btn.dataset.dns);
-
-    btn.innerText = "✔ Copiato!";
-    setTimeout(() => btn.innerText = "📋 Copia DNS", 1500);
+// ===============================================================
+//  COPIA DNS
+// ===============================================================
+function copiaDNS(btn) {
+    navigator.clipboard.writeText(btn.dataset.value);
+    btn.innerHTML = "✔ Copiato!";
+    setTimeout(() => btn.innerHTML = "Copia DNS", 1200);
 }
 
-/* ============================================================
-    NEVE MIGLIORATA (su tutta la pagina)
-============================================================ */
-function creaNeve() {
-    const snow = document.createElement("div");
-    snow.className = "snowflake";
-    snow.textContent = "❄";
-
-    snow.style.position = "fixed";
-    snow.style.left = Math.random() * 100 + "vw";
-    snow.style.top = "-10px";
-
-    snow.style.fontSize = (Math.random() * 8 + 14) + "px";
-    snow.style.opacity = Math.random() * 0.8 + 0.2;
-
-    snow.style.animationDuration = (Math.random() * 2 + 2.5) + "s";
-    snow.style.animationDelay = (Math.random() * 1) + "s";
-    snow.style.animationTimingFunction = "linear";
-
-    document.body.appendChild(snow);
-    setTimeout(() => snow.remove(), 5000);
-}
-
-setInterval(creaNeve, 150);
-
-/* ============================================================
-    MODALE AGGIUNGI
-============================================================ */
-function apriModale() {
-    document.getElementById("modal").style.display = "flex";
-}
-
-function chiudiModale() {
-    document.getElementById("modal").style.display = "none";
-    document.getElementById("modalError").innerText = "";
-}
-
-/* ============================================================
-    AGGIUNGI IP/DNS (controllo + invio)
-============================================================ */
-async function inviaNuovo() {
-    let ip = document.getElementById("new_ip").value.trim();
-    let dns = document.getElementById("new_dns").value.trim();
-    let err = document.getElementById("modalError");
+// ===============================================================
+//  AGGIUNGI STAMPANTE IN SUPABASE
+// ===============================================================
+async function aggiungiStampante() {
+    const ip = document.getElementById("add_ip").value.trim();
+    const dns = document.getElementById("add_dns").value.trim();
+    const msg = document.getElementById("add_msg");
 
     if (!ip || !dns) {
-        err.innerText = "Compila entrambi i campi.";
-        err.style.color = "red";
+        msg.style.color = "#ff4444";
+        msg.innerHTML = "⚠ Inserisci sia IP che DNS.";
         return;
     }
 
-    /* --- Controlla stampanti.csv --- */
-    let mainCSV = await fetch("stampanti.csv?" + Date.now());
-    let mainLines = (await mainCSV.text()).split(/\r?\n/);
-    for (let r of mainLines) {
-        let [c_ip] = r.split(";");
-        if (c_ip === ip) {
-            err.innerText = "❌ IP già registrato in stampanti.csv";
-            err.style.color = "red";
-            return;
+    // Inserisci nel DB Supabase (duplicati bloccati da policy RLS)
+    const { data, error } = await sb
+        .from("stampanti_in_attesa")
+        .insert([{ ip, dns }]);
+
+    if (error) {
+        if (error.message.includes("duplicate")) {
+            msg.style.color = "#ff4444";
+            msg.innerHTML = "❌ IP già inserito in attesa.";
+        } else {
+            msg.style.color = "#ff4444";
+            msg.innerHTML = "❌ Errore server: " + error.message;
         }
+        return;
     }
 
-    /* --- Controlla inattesa.csv --- */
-    let attCSV = await fetch("inattesa.csv?" + Date.now());
-    let attLines = (await attCSV.text()).split(/\r?\n/);
-    for (let r of attLines) {
-        let [c_ip] = r.split(";");
-        if (c_ip === ip) {
-            err.innerText = "❌ IP già in attesa di registrazione";
-            err.style.color = "red";
-            return;
-        }
+    msg.style.color = "#00cc66";
+    msg.innerHTML = "✔ Aggiunto correttamente!";
+    
+    document.getElementById("add_ip").value = "";
+    document.getElementById("add_dns").value = "";
+}
+
+// ===============================================================
+//  NEVE REGOLATA PIÙ VELOCE E SU TUTTO LO SFONDO
+// ===============================================================
+function initSnow() {
+    const snowContainer = document.createElement('div');
+    snowContainer.id = "snow";
+    document.body.appendChild(snowContainer);
+
+    const numeroFiocchi = 60;
+
+    for (let i = 0; i < numeroFiocchi; i++) {
+        const fiocco = document.createElement('div');
+        fiocco.className = 'fiocco';
+        fiocco.style.left = Math.random() * 100 + "vw";
+        fiocco.style.animationDuration = (4 + Math.random() * 4) + "s"; // più veloce
+        fiocco.style.opacity = Math.random();
+        fiocco.style.fontSize = (10 + Math.random() * 14) + "px";
+
+        snowContainer.appendChild(fiocco);
     }
-
-    /* --- Se è tutto ok → invia alla Action --- */
-    await scriviInAttesa(ip, dns);
-
-    err.style.color = "lightgreen";
-    err.innerText = "✔ Aggiunto correttamente! (verrà salvato a breve)";
-
-    /* --- Svuota i campi --- */
-    document.getElementById("new_ip").value = "";
-    document.getElementById("new_dns").value = "";
 }
 
-/* ============================================================
-    PRENDE IL TOKEN DA GITHUB PAGES (sicuro)
-============================================================ */
-async function getDispatchToken() {
-    const r = await fetch("/.github/pages/origin/secret/DISPATCH_TOKEN");
-    const j = await r.json();
-    return j.value;
-}
-
-/* ============================================================
-    INVIA L'EVENTO ALLA ACTION aggiungi.yml
-============================================================ */
-async function scriviInAttesa(ip, dns) {
-
-    const token = await getDispatchToken();
-
-    await fetch("https://api.github.com/repos/kyoko981/appstampanti/actions/workflows/aggiungi.yml/dispatches", {
-        method: "POST",
-        headers: {
-            "Accept": "application/vnd.github.everest-preview+json",
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + token
-        },
-        body: JSON.stringify({
-            ref: "main",
-            inputs: {
-                ip: ip,
-                dns: dns
-            }
-        })
-    });
-}
-
-/* ============================================================
-    ULTIMO ACCESSO
-============================================================ */
-window.onload = () => {
-    let last = localStorage.getItem("ultimoAccesso");
-    if (last) document.getElementById("ultimoAccesso").innerText = last;
-};
+document.addEventListener("DOMContentLoaded", initSnow);
