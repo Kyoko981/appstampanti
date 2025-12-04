@@ -128,3 +128,15 @@ function initSnow() {
 }
 
 document.addEventListener("DOMContentLoaded", initSnow);
+
+document.addEventListener("DOMContentLoaded", () => {
+    const m = localStorage.getItem("matricola");
+    if (isAdmin(m)) {
+        document.getElementById("btnAdmin").style.display = "inline-block";
+    }
+});
+
+function vaiAdmin() {
+    window.location.href = "admin.html";
+}
+
