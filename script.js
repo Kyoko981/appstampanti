@@ -141,8 +141,11 @@ async function inviaNuovo() {
     /* Se tutto ok → manda evento a GitHub Action */
     await scriviInAttesa(ip, dns);
 
-    err.style.color = "lightgreen";
-    err.innerText = "✔ Aggiunto correttamente! (verrà salvato a breve)";
+err.style.color = "lightgreen";
+err.innerText = "✔ Aggiunto correttamente! (verrà salvato a breve)";
+
+document.getElementById("new_ip").value = "";
+document.getElementById("new_dns").value = "";
 }
 
 /* ============================================================
