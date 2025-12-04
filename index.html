@@ -8,6 +8,9 @@
 
 <body>
 
+<!-- Pulsante AGGIUNGI sempre presente -->
+<button id="btnAggiungi" class="floating-add" onclick="apriModale()">➕ Aggiungi</button>
+
 <!-- Luci colorate -->
 <div class="luci">
     <div class="luce"></div><div class="luce"></div><div class="luce"></div>
@@ -42,7 +45,7 @@
 
         <h2>🔍 Ricerca DNS da IP</h2>
         <input type="text" id="ip" placeholder="Inserisci IP stampante">
-        
+
         <div id="dnsContainer">
             <p id="risultato"></p>
             <button id="copyBtn" onclick="copiaDNS()" style="display:none;">📋 Copia DNS</button>
@@ -52,6 +55,21 @@
 
 <!-- Alberello -->
 <div class="footer-tree">🎄</div>
+
+<!-- MODALE AGGIUNGI IP/DNS -->
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <h2>➕ Aggiungi nuova stampante</h2>
+
+        <input type="text" id="new_ip" placeholder="IP (es. 10.0.64.3)">
+        <input type="text" id="new_dns" placeholder="DNS (es. st0801)">
+
+        <p id="modalError" class="error"></p>
+
+        <button onclick="inviaNuovo()">✔ Invia</button>
+        <button class="chiudi" onclick="chiudiModale()">Chiudi</button>
+    </div>
+</div>
 
 <script src="script.js"></script>
 
