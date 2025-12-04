@@ -1,4 +1,4 @@
-/* ===== SFONDO NEVE ANIMATA ===== */
+/* ===== SFONDO BLU NOTTE ===== */
 
 body {
     margin: 0;
@@ -6,70 +6,73 @@ body {
     font-family: Arial, sans-serif;
     color: white;
     text-align: center;
-
-    background: linear-gradient(#002244, #000814);
+    background: linear-gradient(#002244, #001833, #000814);
     overflow-x: hidden;
 }
 
-/* neve */
+/* ===== NEVE ANIMATA ===== */
+
 .snowflake {
     position: fixed;
     top: -10px;
     color: white;
     font-size: 1em;
     user-select: none;
-    animation: fall linear infinite;
+    animation: fall linear infinite, spin linear infinite;
 }
 
 @keyframes fall {
-    to {
-        transform: translateY(110vh);
-        opacity: 0.2;
-    }
+    to { transform: translateY(110vh) rotate(20deg); opacity: 0.2; }
 }
 
-/* ===== LUMINARIE ANIMATE ===== */
+@keyframes spin {
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ===== LUCINE COLORATE ANIMATE ===== */
 
 .luci {
     width: 100%;
-    padding: 15px 0;
-    background: rgba(255, 255, 255, 0.05);
+    padding: 18px 0;
     display: flex;
     justify-content: center;
-    gap: 12px;
-    border-bottom: 2px solid rgba(255,255,255,0.2);
+    gap: 15px;
+
+    background: none;
+    border-bottom: none;
 }
 
 .luce {
-    width: 14px;
-    height: 28px;
+    width: 18px;
+    height: 32px;
     border-radius: 50%;
-    background: red;
-    box-shadow: 0 0 8px red;
-    animation: blink 1.5s infinite;
+    animation: colorBlink 1.5s infinite, glow 1.5s infinite;
 }
 
-.luce:nth-child(odd) {
-    background: yellow;
-    box-shadow: 0 0 8px yellow;
-    animation-delay: 0.7s;
+@keyframes colorBlink {
+    0%   { background: red; }
+    25%  { background: yellow; }
+    50%  { background: lime; }
+    75%  { background: cyan; }
+    100% { background: red; }
 }
 
-@keyframes blink {
-    0% { opacity: 1; }
-    50% { opacity: 0.2; }
-    100% { opacity: 1; }
+@keyframes glow {
+    0%   { box-shadow: 0 0 8px white; }
+    50%  { box-shadow: 0 0 15px white; }
+    100% { box-shadow: 0 0 8px white; }
 }
 
-/* ===== CONTENITORE ===== */
+/* ===== BOX ===== */
 
 .container {
-    margin: 40px auto;
+    margin: 50px auto;
     max-width: 420px;
     padding: 30px;
     background: rgba(0,0,0,0.55);
     border-radius: 20px;
-    box-shadow: 0 0 15px #fff3;
+    box-shadow: 0 0 25px #fff3;
     backdrop-filter: blur(6px);
 }
 
@@ -82,7 +85,7 @@ input {
 }
 
 button {
-    padding: 10px 20px;
+    padding: 10px 22px;
     background: #d7263d;
     border: none;
     border-radius: 6px;
@@ -103,4 +106,13 @@ button:hover {
 
 .error {
     color: #ffbbbb;
+}
+
+/* ALBERELLO IN BASSO */
+.footer-tree {
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+    font-size: 38px;
+    opacity: 0.85;
 }
