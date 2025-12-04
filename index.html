@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Stampanti Padova</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+    <h1>🎄 Stampanti Padova 🎄</h1>
+
+    <div id="loginBox">
+        <p>Inserisci matricola per accedere:</p>
+        <input type="text" id="matricola" placeholder="Es. r010687">
+        <button onclick="login()">Accedi</button>
+        <p id="loginError" class="error"></p>
+    </div>
+
+    <div id="app" style="display:none;">
+        <div class="last">
+            Ultimo accesso: <span id="ultimoAccesso"></span>
+        </div>
+
+        <h2>🔍 Ricerca DNS da IP</h2>
+        <input type="text" id="ip" placeholder="Inserisci IP stampante">
+        <button onclick="cercaDNS()">Cerca</button>
+
+        <p id="risultato"></p>
+    </div>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
