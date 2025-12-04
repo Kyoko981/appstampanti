@@ -2,75 +2,54 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>Gestione Richieste</title>
+<title>Pannello Admin</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="script.js"></script>
+<link rel="stylesheet" href="style.css">
 
 <style>
-    body {
-        background: #06223A;
-        color: white;
-        font-family: Arial;
-        padding: 20px;
-    }
-
-    h1 {
-        text-align: center;
-        margin-bottom: 20px;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        background: #0A2E4D;
-        border-radius: 8px;
-        overflow: hidden;
-    }
-
-    th {
-        background: #133B63;
-        padding: 12px;
-        font-size: 16px;
-    }
-
-    td {
-        padding: 10px;
-        border-top: 1px solid #1A456E;
-    }
-
-    button {
-        padding: 6px 10px;
-        background: #c0392b;
-        border: none;
-        border-radius: 6px;
-        color: white;
-        cursor: pointer;
-    }
-
-    button:hover {
-        background: #e74c3c;
-    }
-
+table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+    background: rgba(0,0,30,0.5);
+    color: white;
+    border-radius: 8px;
+}
+th, td {
+    padding: 10px;
+    border-bottom: 1px solid #1a3a57;
+}
+button {
+    background: #c0392b;
+    border: none;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+}
+button:hover {
+    background: #e74c3c;
+}
 </style>
 
 </head>
 <body>
 
-<h1>📋 Gestione Richieste Stampanti</h1>
+<div id="snow"></div>
+
+<h1>Gestione Richieste</h1>
 
 <div id="contenuto"></div>
 
 <script>
 (async () => {
-    // Controllo admin
     const m = localStorage.getItem("matricola");
     if (!isAdmin(m)) {
         document.body.innerHTML = "<h2>⛔ Accesso negato</h2>";
         return;
     }
 
-    // Carica richieste
     const { data, error } = await sb
         .from("stampanti_in_attesa")
         .select("*")
@@ -81,46 +60,31 @@
         return;
     }
 
-    let html = `<table>
+    let html = `
+    <table>
         <tr>
             <th>IP</th>
             <th>DNS</th>
-            <th>Inserita il</th>
+            <th>Inserito</th>
             <th>Azioni</th>
         </tr>
     `;
 
     data.forEach(r => {
         html += `
-            <tr>
-                <td>${r.ip}</td>
-                <td>${r.dns}</td>
-                <td>${new Date(r.created_at).toLocaleString()}</td>
-                <td><button onclick="eliminaRichiesta('${r.id}')">Elimina</button></td>
-            </tr>
-        `;
+        <tr>
+            <td>${r.ip}</td>
+            <td>${r.dns}</td>
+            <td>${new Date(r.created_at).toLocaleString()}</td>
+            <td><button onclick="eliminaRichiesta('${r.id}')">Elimina</button></td>
+        </tr>`;
     });
 
     html += "</table>";
+
     document.getElementById("contenuto").innerHTML = html;
 })();
 
-async function eliminaRichiesta(id) {
-    if (!confirm("Eliminare questa richiesta?")) return;
-
-    const { error } = await sb
-        .from("stampanti_in_attesa")
-        .delete()
-        .eq("id", id);
-
-    if (error) {
-        alert("Errore: " + error.message);
-        return;
-    }
-
-    alert("✔ Richiesta eliminata!");
-    location.reload();
-}
 </script>
 
 </body>
