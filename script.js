@@ -19,9 +19,20 @@ async function login() {
     document.getElementById("app").style.display = "block";
 }
 
+// ===== RICERCA DNS AUTOMATICA mentre scrivi =====
+document.addEventListener("DOMContentLoaded", () => {
+    const ipField = document.getElementById("ip");
+    if (ipField) {
+        ipField.addEventListener("input", cercaDNS);
+    }
+});
+
 async function cercaDNS() {
     let ip = document.getElementById("ip").value.trim();
-    if (!ip) return;
+    if (!ip) {
+        document.getElementById("risultato").innerText = "";
+        return;
+    }
 
     let res = await fetch("stampanti.csv?" + Date.now());
     let text = await res.text();
@@ -29,8 +40,7 @@ async function cercaDNS() {
     let lines = text.split(/\r?\n/);
 
     for (let l of lines) {
-        let [c_ip, c_dns] = l.split(";");   // ← QUI IL CAMBIAMENTO IMPORTANTE
-
+        let [c_ip, c_dns] = l.split(";");
         if (c_ip && c_ip.trim() === ip) {
             document.getElementById("risultato").innerText = "DNS: " + c_dns;
             return;
@@ -40,12 +50,7 @@ async function cercaDNS() {
     document.getElementById("risultato").innerText = "❌ DNS non trovato";
 }
 
-window.onload = () => {
-    let last = localStorage.getItem("ultimoAccesso");
-    if (last) document.getElementById("ultimoAccesso").innerText = last;
-};
-
-// ===== NEVE ANIMATA =====
+// ===== NEVE ANIMATA LENTA E ROTANTE =====
 
 function creaNeve() {
     const snow = document.createElement("div");
@@ -53,13 +58,20 @@ function creaNeve() {
     snow.textContent = "❄";
 
     snow.style.left = Math.random() * 100 + "vw";
-    snow.style.fontSize = (Math.random() * 10 + 10) + "px";
-    snow.style.animationDuration = (Math.random() * 5 + 5) + "s";
+    snow.style.fontSize = (Math.random() * 10 + 16) + "px";
+    snow.style.animationDuration = (Math.random() * 10 + 10) + "s";
+    snow.style.opacity = Math.random() * 0.9 + 0.1;
 
     document.body.appendChild(snow);
 
-    setTimeout(() => snow.remove(), 12000);
+    setTimeout(() => snow.remove(), 20000);
 }
 
-setInterval(creaNeve, 150);
+// neve lenta
+setInterval(creaNeve, 250);
 
+// ultimo accesso
+window.onload = () => {
+    let last = localStorage.getItem("ultimoAccesso");
+    if (last) document.getElementById("ultimoAccesso").innerText = last;
+};
