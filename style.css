@@ -1,16 +1,27 @@
-/* ===== SFONDO BLU NOTTE ===== */
+/* ===== SFONDO ANIMATO "ONDE BLU" ===== */
 
 body {
     margin: 0;
     padding: 0;
+    min-height: 100vh;
     font-family: Arial, sans-serif;
     color: white;
     text-align: center;
-    background: linear-gradient(#002244, #001833, #000814);
     overflow-x: hidden;
+    overflow-y: hidden;
+
+    background: linear-gradient(120deg, #001f3f, #003e73, #001f3f);
+    background-size: 300% 300%;
+    animation: ondaBlu 12s ease infinite;
 }
 
-/* ===== NEVE ANIMATA ===== */
+@keyframes ondaBlu {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* ===== NEVE ===== */
 
 .snowflake {
     position: fixed;
@@ -26,7 +37,7 @@ body {
 }
 
 @keyframes spin {
-    0%   { transform: rotate(0deg); }
+    0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
 
@@ -108,7 +119,8 @@ button:hover {
     color: #ffbbbb;
 }
 
-/* ALBERELLO IN BASSO */
+/* ===== ALBERELLO ===== */
+
 .footer-tree {
     position: fixed;
     bottom: 15px;
