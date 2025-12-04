@@ -14,7 +14,8 @@ async function login() {
     }
 
     localStorage.setItem("ultimoAccesso", new Date().toLocaleString("it-IT"));
-    document.getElementById("ultimoAccesso").innerText = localStorage.getItem("ultimoAccesso");
+    document.getElementById("ultimoAccesso").innerText =
+        localStorage.getItem("ultimoAccesso");
 
     document.getElementById("loginBox").style.display = "none";
     document.getElementById("app").style.display = "block";
@@ -67,31 +68,30 @@ function copiaDNS() {
     setTimeout(() => btn.innerText = "📋 Copia DNS", 1500);
 }
 
-/* ================================
-   NEVE MIGLIORATA (no colonne)
-================================ */
-
+/* ============================================================
+    NEVE MIGLIORATA (su tutta la pagina)
+============================================================ */
 function creaNeve() {
     const snow = document.createElement("div");
     snow.className = "snowflake";
     snow.textContent = "❄";
 
-    // Larghezza schermo intera
+    snow.style.position = "fixed";
     snow.style.left = Math.random() * 100 + "vw";
+    snow.style.top = "-10px";
 
     snow.style.fontSize = (Math.random() * 8 + 14) + "px";
-    snow.style.animationDuration = (Math.random() * 2 + 2.5) + "s";
     snow.style.opacity = Math.random() * 0.8 + 0.2;
 
-    document.body.appendChild(snow);
+    snow.style.animationDuration = (Math.random() * 2 + 2.5) + "s";
+    snow.style.animationDelay = (Math.random() * 1) + "s";
+    snow.style.animationTimingFunction = "linear";
 
+    document.body.appendChild(snow);
     setTimeout(() => snow.remove(), 5000);
 }
 
-// ogni 150ms → neve ricca ma naturale
 setInterval(creaNeve, 150);
-
-
 
 /* ============================================================
     MODALE AGGIUNGI
@@ -99,12 +99,14 @@ setInterval(creaNeve, 150);
 function apriModale() {
     document.getElementById("modal").style.display = "flex";
 }
+
 function chiudiModale() {
     document.getElementById("modal").style.display = "none";
+    document.getElementById("modalError").innerText = "";
 }
 
 /* ============================================================
-    AGGIUNGI IP/DNS (con controlli duplicati)
+    AGGIUNGI IP/DNS (controllo + invio)
 ============================================================ */
 async function inviaNuovo() {
     let ip = document.getElementById("new_ip").value.trim();
@@ -113,6 +115,7 @@ async function inviaNuovo() {
 
     if (!ip || !dns) {
         err.innerText = "Compila entrambi i campi.";
+        err.style.color = "red";
         return;
     }
 
@@ -123,6 +126,7 @@ async function inviaNuovo() {
         let [c_ip] = r.split(";");
         if (c_ip === ip) {
             err.innerText = "❌ IP già registrato in stampanti.csv";
+            err.style.color = "red";
             return;
         }
     }
@@ -134,41 +138,53 @@ async function inviaNuovo() {
         let [c_ip] = r.split(";");
         if (c_ip === ip) {
             err.innerText = "❌ IP già in attesa di registrazione";
+            err.style.color = "red";
             return;
         }
     }
 
-    /* Se tutto ok → manda evento a GitHub Action */
+    /* --- Se è tutto ok → invia alla Action --- */
     await scriviInAttesa(ip, dns);
 
-err.style.color = "lightgreen";
-err.innerText = "✔ Aggiunto correttamente! (verrà salvato a breve)";
+    err.style.color = "lightgreen";
+    err.innerText = "✔ Aggiunto correttamente! (verrà salvato a breve)";
 
-document.getElementById("new_ip").value = "";
-document.getElementById("new_dns").value = "";
+    /* --- Svuota i campi --- */
+    document.getElementById("new_ip").value = "";
+    document.getElementById("new_dns").value = "";
 }
 
 /* ============================================================
-    GITHUB ACTION VIA repository_dispatch
+    PRENDE IL TOKEN DA GITHUB PAGES (sicuro)
+============================================================ */
+async function getDispatchToken() {
+    const r = await fetch("/.github/pages/origin/secret/DISPATCH_TOKEN");
+    const j = await r.json();
+    return j.value;
+}
+
+/* ============================================================
+    INVIA L'EVENTO ALLA ACTION aggiungi.yml
 ============================================================ */
 async function scriviInAttesa(ip, dns) {
 
-    await fetch("https://api.github.com/repos/kyoko981/appstampanti/dispatches", {
+    const token = await getDispatchToken();
+
+    await fetch("https://api.github.com/repos/kyoko981/appstampanti/actions/workflows/aggiungi.yml/dispatches", {
         method: "POST",
         headers: {
             "Accept": "application/vnd.github.everest-preview+json",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
         },
         body: JSON.stringify({
-            event_type: "aggiungi_stampante",
-            client_payload: {
+            ref: "main",
+            inputs: {
                 ip: ip,
                 dns: dns
             }
         })
     });
-
-    // Nessun token → sicurezza totale
 }
 
 /* ============================================================
