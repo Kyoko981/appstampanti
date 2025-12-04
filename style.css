@@ -1,69 +1,153 @@
+/* =============================
+   SFONDO NATALIZIO MODERNO
+============================= */
 body {
-    background: linear-gradient(120deg, #001f3f, #003e73, #001f3f);
-    background-size: 300% 300%;
-    animation: onda 12s ease infinite;
-    font-family: Arial;
-    color: white;
     margin: 0;
     padding: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: white;
+    background: linear-gradient(180deg, #001122, #002a4d, #001122);
+    background-size: 400% 400%;
+    animation: sfondo 15s ease infinite;
 }
 
-@keyframes onda {
-    0% { background-position:0% 50%; }
-    50% { background-position:100% 50%; }
-    100% { background-position:0% 50%; }
+@keyframes sfondo {
+    0% { background-position: 0% 0%; }
+    50% { background-position: 100% 100%; }
+    100% { background-position: 0% 0%; }
 }
 
-.box {
-    width: 350px;
-    margin: 50px auto;
-    padding: 20px;
-    background: rgba(0, 0, 30, 0.5);
-    border-radius: 12px;
-    text-align: center;
-}
-
-input {
-    width: 90%;
-    padding: 8px;
-    margin: 6px 0;
-    border-radius: 6px;
-    border: none;
-}
-
-button {
-    background: #2ecc71;
-    color: black;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-button:hover {
-    background: #27ae60;
-}
-
-.error { color: #ff4444; }
-
-.accesso { font-size: 12px; color: #dcdcdc; }
-
+/* =============================
+   NEVE
+============================= */
 #snow { 
     position: fixed;
     top:0; left:0;
     width:100%; height:100%;
     pointer-events:none;
     overflow:hidden;
+    z-index: 2000;
 }
 
 .fiocco {
     position:absolute;
     top:-20px;
-    color:white;
+    color:#ffffff;
+    opacity:0.8;
     animation: caduta linear infinite;
+    text-shadow: 0 0 10px rgba(255,255,255,0.7);
 }
 
 @keyframes caduta {
-    0% { transform: translateY(-10vh); }
-    100% { transform: translateY(110vh); }
+    0% { transform: translateY(-10vh) rotate(0deg); }
+    100% { transform: translateY(110vh) rotate(360deg); }
 }
+
+/* =============================
+   CARD E BOX
+============================= */
+.box {
+    width: 350px;
+    margin: 60px auto;
+    padding: 25px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    border: 1px solid rgba(255,215,0,0.4);
+    text-align: center;
+    box-shadow: 0 0 20px rgba(255,215,0,0.1);
+}
+
+/* =============================
+   INPUT MODERNI
+============================= */
+input {
+    width: 90%;
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 8px;
+    border: none;
+    font-size: 15px;
+    background: rgba(255,255,255,0.8);
+}
+
+/* =============================
+   BOTTONI NATALIZI
+============================= */
+button {
+    padding: 10px 18px;
+    margin-top: 10px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 15px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.25);
+    transition: 0.25s;
+}
+
+/* Verde Natale */
+button.green {
+    background: #2ecc71;
+    color: #003300;
+}
+button.green:hover {
+    background: #27ae60;
+}
+
+/* Rosso Natale */
+button.red {
+    background: #e74c3c;
+    color: white;
+}
+button.red:hover {
+    background: #c0392b;
+}
+
+/* Oro Natale */
+button.gold {
+    background: #f1c40f;
+    color: #663c00;
+}
+button.gold:hover {
+    background: #d4ac0d;
+}
+
+.error { color: #ffaaaa; }
+.accesso { font-size: 11px; color: #dcdcdc; }
+
+/* =============================
+   TABELLA ADMIN
+============================= */
+table {
+    width: 95%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+th {
+    background: rgba(255,215,0,0.25);
+    padding: 12px;
+    font-size: 16px;
+}
+
+td {
+    padding: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+
+.adminBox {
+    width: 80%;
+    margin: 30px auto;
+    padding: 20px;
+    background: rgba(255,255,255,0.20);
+    backdrop-filter: blur(12px);
+    border-radius: 15px;
+    border: 1px solid rgba(255,215,0,0.4);
+    text-align: center;
+}
+
